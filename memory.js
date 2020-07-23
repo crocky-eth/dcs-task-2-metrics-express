@@ -1,6 +1,6 @@
 const mem = {}
 
-const EXCEED_1HR = 60 * 60 * 1000 * 0.001
+const EXCEED_1HR = (60 * 60 * 1000) / (6 * 60)
 const CLEAR_CYCLE = 0.5
 
 setInterval(() => {
@@ -19,6 +19,10 @@ setInterval(() => {
 }, EXCEED_1HR * CLEAR_CYCLE)
 
 module.exports = {
+  getAll: (key) =>
+    new Promise((resolve, reject) => {
+      resolve(mem[key] || { base: Date.now(), values: [] })
+    }),
   get: (key) =>
     new Promise((resolve, reject) => {
       const now = Date.now()

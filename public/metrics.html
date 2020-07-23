@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+
+  </style>
+</head>
+
+<body onload="init()">
+  <h1>Metrics: <span id="key">---</span></h1>
+  <p>Try to enter your value which can be kept 1 hr (10 seconds for test)</p>
+  <form method="POST" action="/metrics">
+    <label for="key">Enter value</label>
+    <input id="value" name="value" type="number" required autofocus />
+    <input hidden name="redirect" value="true" />
+    <input type="submit" value="Submit" />
+  </form>
+
+  <p>Current sum: <span id="current">...</span></p>
+  <p>Current values:</p>
+  <table id="metrics">
+  </table>
+
+  <script>
+    var key = ''
+
+    function init() {
+      const splits = window.location.toString().split('/')
+      const where = splits.findIndex(s => s === 'metrics')
+      if (where === -1) {
+        window.location.href('/')
+      } else {
+        key = splits[where + 1]
+        document.getElementById('key').innerText = key
+        document.forms[0].action = `/metrics/${key}`
+        setInterval(() => {
+          getData()
+          getMetrics()
+        }, 1000)
+        getData()
+        getMetrics()
+      }
+    }
+
+    function getData() {
+      const xmlHttp = new XMLHttpRequest()
+      xmlHttp.open('GET', `/metrics/${key}/sum`, false)
+      xmlHttp.send(null)
+      const data = JSON.parse(xmlHttp.responseText)
+      document.getElementById('current').innerText = data.value
+    }
+    function getMetrics() {
+      const xmlHttp = new XMLHttpRequest()
+      xmlHttp.open('GET', `/metrics/${key}/all`, false)
+      xmlHttp.send(null)
+      const data = JSON.parse(xmlHttp.responseText)
+      const list = data.value.values
+      const table = document.getElementById('metrics')
+      table.innerHTML = ''
+      const now = Date.now()
+      for (let i = 0; i < list.length; i++) {
+        const trow = table.insertRow(-1)
+        const cell1 = trow.insertCell(-1)
+        cell1.innerHTML = new Date(list[i].timestamp).toISOString()
+        const cell2 = trow.insertCell(-1)
+        cell2.innerHTML = `${list[i].value} - (${10 - parseInt((now - list[i].timestamp) / 1000)}s)`
+      }
+    }
+  </script>
+</body>
+
+</html>
